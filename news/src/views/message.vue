@@ -7,15 +7,11 @@
       </div>
       
       <div class="account-content">
-        <div class="nav">
+        <div class="nav1" @top="topMethod" style="top:0">
           <ul>
-            <router-link to="/message">
             
-            <li :class="{active:this.$route.path.indexOf('mymessage')===-1?true:false}">我的评论</li>
-            </router-link>
-            <router-link to="/message/mymessage">
-            <li :class="{active:this.$route.path.indexOf('mymessage')===-1?false:true}">我的消息({{count}})</li>
-            </router-link>
+            <li :class="{active:this.$route.path.indexOf('mymessage')===-1?true:false}" @click="goComment">我的评论</li>
+            <li :class="{active:this.$route.path.indexOf('mymessage')===-1?false:true}" @click="goMessage">我的消息({{count}})</li>
           </ul>
         </div>
         <div class="account-content-right">
@@ -33,11 +29,13 @@ import headerCom from "../components/common/header";
 import footerCom from "../components/common/footer";
 import defaultHeader from "../assets/header.png";
 import {messageCount} from "@/api/account.js";
+import {tokenMethod} from "@/api/token.js";
 export default {
   data() {
     return {
       count:0,
       defaultHeader,
+      top:0
     };
   },
   components: {
@@ -46,20 +44,39 @@ export default {
   },
   methods:{
     getMessageCount(token){
-      messageCount(token).then(res => {
-        if (res.data.code === "success") {
-          this.count = res.data.count;
-        } else {
-          this.$message.error(res.data.message);
-        }
+      let self = this;
+      messageCount({token}).then(res => {
+        res.data.code === "success" ? self.count = res.data.count :　tokenMethod({code:res.data.code,message:res.data.message,self});
       }).catch(err => {
         // 错误处理
       })
+    },
+    goComment(){
+      let self = this;
+      self.$router.push({name:'mycomment'});
+      self.$store.commit('setMessageActive','mycomment');
+    },
+    goMessage(){
+  let self = this;
+      self.$router.push({name:'mymessage'});
+      self.$store.commit('setMessageActive','mymessage');
+    
+    },
+    topMethod(){
+      console.log("top");
     }
   },
   created(){
-    this.getMessageCount(this.$store.state.user.token);
-  }
+    let self = this;
+    self.getMessageCount(self.$store.state.token);
+    document.documentElement.scrollTop = 0;
+document.documentElement.scrollTop = 0;
+      setTimeout(function(){
+      window.scrollTo(0,0);
+    },0);
+    self.$router.push({name:self.$store.state.isMessageActive});
+  },
+
 };
 </script>
 
@@ -94,7 +111,7 @@ export default {
   margin: auto;
   position: relative;
 }
-.nav {
+.nav1 {
   background: #ffffff;
   box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.12);
   display: inline-block;
@@ -106,7 +123,8 @@ export default {
 a{
   color: #333;
 }
-.nav ul li {
+
+.nav1 ul li {
   width: 134px;
   height: 30px;
   font-size: 16px;

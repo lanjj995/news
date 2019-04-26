@@ -1,63 +1,77 @@
 <template>
-  <div class="details">
-    <div class="comment-msg">
-      <ul>
-        <li>
-          <img src="@/assets/icon_comment_color.png" alt>
-          {{news.comment_sum}}
-        </li>
-        <li>
-          <img src="@/assets/icon_saw_color.png" alt>
-          {{news.comment_sum}}
-        </li>
-        <li class="fenxiangLi">
-          <img src="@/assets/icon_share.png" @click="isImg = !isImg">
-          <img src="@/assets/fenxiang.png" class="fenxiang" v-show="isImg">
-        </li>
-      </ul>
-    </div>
-    <div class="news-details">
-      <div class="title">{{news.title}}</div>
-      <div class="message">
-        <span>{{news.source}}</span>
-        <span>{{news.create_time | getTime}}</span>
-      </div>
-      <div class="detials-img">
-        <img src="@/assets/new.png" alt="图片" class="details-image">
-      </div>
-      <div class="content" v-html="news.details">
-        <!-- <p>介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴</p> -->
-      </div>
-      <div class="publish-comment">
-        <h2>新闻点评</h2>
-        <textarea rows="1" class="comment-texerea" placeholder="我有话要说...." v-model="commentcontent"></textarea>
-        <inputButton
-          style="width:110px;height:36px;background:#FF8000;color:#FFFFFF;float:right;margin-top:10px;"
-          :value="this.$store.state.token?'评论':'登陆评论'"
-          @click.native="comment"
-        ></inputButton>
-      </div>
-      <div class="new-comment">
-        <h2>最近评论</h2>
-        <div class="body" v-for="(commentIds,index) in commentIdsList" :key="index">
-          <comment
-            :commentList="commentList"
-            :commentIds="commentIds"
-            :level="commentIds.split(',').length"
-            @load="load"
-          ></comment>
+  <div class="main">
+    <headerCom style="background:#0074ff;color:#fff;" :color="'#ffffff'"></headerCom>
+    <div class="content">
+      <div class="details">
+        <div class="comment-msg">
+          <ul>
+            <li>
+              <img src="@/assets/icon_comment_color.png" alt>
+              {{news.comment_sum}}
+            </li>
+            <li>
+              <img src="@/assets/icon_saw_color.png" alt>
+              {{news.comment_sum}}
+            </li>
+            <li class="fenxiangLi">
+              <img src="@/assets/icon_share.png" @click="isImg = !isImg">
+              <img src="@/assets/fenxiang.png" class="fenxiang" v-show="isImg">
+            </li>
+          </ul>
         </div>
-        <div class="loading" v-if="isloading">
-          <el-button :loading="true">加载中</el-button>
+        <div class="news-details">
+          <div class="title">{{news.title}}</div>
+          <div class="message">
+            <span>{{news.source}}</span>
+            <span>{{news.create_time | getTime}}</span>
+          </div>
+          <div class="detials-img">
+            <img src="@/assets/new.png" alt="图片" class="details-image">
+          </div>
+          <div class="content" v-html="news.details">
+            <!-- <p>介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴</p> -->
+          </div>
+          <div class="publish-comment">
+            <h2>新闻点评</h2>
+            <textarea
+              rows="1"
+              class="comment-texerea"
+              placeholder="我有话要说...."
+              v-model="commentcontent"
+            ></textarea>
+            <inputButton
+              style="width:110px;height:36px;background:#FF8000;color:#FFFFFF;float:right;margin-top:10px;"
+              :value="this.$store.state.token?'评论':'登陆评论'"
+              @click.native="comment"
+            ></inputButton>
+          </div>
+          <div class="new-comment">
+            <h2>最近评论</h2>
+            <div class="body" v-for="(commentIds,index) in commentIdsList" :key="index">
+              <comment
+                :commentList="commentList"
+                :commentIds="commentIds"
+                :level="commentIds.split(',').length"
+                @load="load"
+              ></comment>
+            </div>
+            <div class="loading" v-if="isloading">
+              <el-button :loading="true">加载中</el-button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+    <footerCom :style="{}"></footerCom>
   </div>
 </template>
 <script>
-import inputButton from "../input/input-button";
-import comment from "./comment";
-import { details, comment_list, addcomment } from "@/api/new.js";
+import headerCom from "../components/common/header";
+import footerCom from "../components/common/footer";
+import inputButton from "../components/input/input-button";
+import comment from "../components/new/comment";
+import { details, comment_list, addcomment } from "../api/new.js";
+import { tokenMethod } from "../api/token.js";
 import { create } from "domain";
 export default {
   data() {
@@ -103,32 +117,27 @@ export default {
   },
   methods: {
     // 获取评论列表
+
     getcomment_list(id) {
-      if (this.page === this.page2) {
-        this.page2 += 1;
-        comment_list(id, this.page, this.limit)
+      let self = this;
+      if (self.page === self.page2) {
+        self.page2 += 1;
+        comment_list({id, page:self.page, limit:self.limit})
           .then(res => {
             if (res.data.code === "success") {
-              this.commentList = Object.assign(
+              self.commentList = Object.assign(
                 {},
-                this.commentList,
+                self.commentList,
                 res.data.data.comments
               );
-              // for (let index in res.data.data.commentIds) {
-              //   let o = res.data.data.commentIds[index]
-              //     .split(",")
-              //     .reverse()
-              //     .join(",");
-              //   this.$set(res.data.data.commentIds, index, o);
-              // }
-              this.commentIdsList = this.commentIdsList.concat(
+          
+              self.commentIdsList = self.commentIdsList.concat(
                 res.data.data.commentIds
               );
-
-              this.count = res.data.data.counts;
-              this.page += 1;
+              self.count = res.data.data.counts;
+              self.page += 1;
             } else {
-              this.$message.error(res.data.message);
+              self.$message.error(res.data.message);
             }
           })
           .catch(err => {
@@ -140,88 +149,87 @@ export default {
     },
     // 获取文章详情
     getdetails(id) {
-      details(id)
+      let self = this;
+      details({id})
         .then(res => {
           if (res.data.code === "success") {
-            this.news = res.data.data.news;
-            this.imgUrl = require("@/assets/new.png");
+            self.news = res.data.data.news;
+            self.imgUrl = require("@/assets/new.png");
           } else {
-            this.$message.error(res.data.message);
+            self.$message.error(res.data.message);
           }
         })
         .catch(err => {
           // 错误处理
-          this.$router.push("/404");
+          self.$router.push("/404");
         });
     },
     // 评论
     comment() {
-      if (!this.$store.state.token) {
-        this.$router.push({name:'login'});
+      let self = this;
+      if (!self.$store.state.token) {
+        self.$router.push({ name: "login" });
       } else {
-if (!this.commentcontent) {
-          this.$message({
+        if (!self.commentcontent) {
+          self.$message({
             type: "warning",
             message: "请输入评论内容"
           });
         } else {
-          addcomment(
-            this.id,
-            null,
-            this.commentcontent,
-            this.$store.state.user.token
-          )
+          addcomment({
+            articleId:self.id,
+            commentId:null,
+            content:self.commentcontent,
+            token:self.$store.state.user.token
+          })
             .then(res => {
               if (res.data.code === "success") {
-                this.load();
-                this.$message({
+                self.load();
+                self.$message({
                   message: "评论成功",
                   type: "success"
                 });
-                this.commentcontent = "";
+                self.commentcontent = "";
               } else {
-                if (res.data.code === "account_token_invalid") {
-                  this.$alert("消息提示", res.data.message, {
-                    comfirmButtonText: "确认",
-                    callback: action => {
-                      this.$router.push("/user/login");
-                    }
-                  });
-                } else {
-                  this.$message.error(res.data.message);
-                }
+                tokenMethod({code:res.data.code,message:res.data.message,self});
               }
             })
             .catch(err => {
               // 处理错误
-              this.$router.push("/404");
+              self.$router.push("/404");
             });
         }
       }
-     
     },
-    load(){
-      this.page =1 ;
-      this.page2=1;
-      this.commentIdsList = [];
-      this.commentList = {};
-      this.getcomment_list(this.id);
+    load() {
+      let self = this;
+      self.page = 1;
+      self.page2 = 1;
+      self.commentIdsList = [];
+      self.commentList = {};
+      self.getcomment_list(self.id);
     }
   },
   components: {
+      headerCom,
+      footerCom,
     inputButton,
     comment
   },
   created() {
-    this.id = this.$route.params.id;
-    this.getdetails(this.id);
-    this.getcomment_list(this.id);
+    let self = this;
+    self.id = self.$route.params.id;
+    self.getdetails(self.id);
+    self.getcomment_list(self.id);
+    document.documentElement.scrollTop = 0;
+   
   },
   mounted() {
     window.onscroll = () => {
+      let self = this;
+
       let loading = document.querySelector(".loading");
       let arr = document.querySelectorAll(".body");
-
       if (!loading) return;
       if (
         loading.offsetTop -
@@ -229,17 +237,17 @@ if (!this.commentcontent) {
           loading.clientHeight <
         document.documentElement.clientHeight
       ) {
-        if (arr.length < this.count) {
-          this.getcomment_list(this.id);
-        } else {
-          this.isloading = false;
-        }
+        arr.length < this.count ? self.getcomment_list(self.id):self.isloading = false;
       }
     };
   }
 };
 </script>
 <style scoped>
+.fenxiangLi >img{
+  cursor: pointer;
+}
+
 .loading {
   text-align: center;
 }
@@ -248,6 +256,7 @@ if (!this.commentcontent) {
 }
 .details {
   width: 100%;
+  position: relative;
 }
 .comment-msg {
   position: absolute;
@@ -352,13 +361,11 @@ if (!this.commentcontent) {
   font-size: 16px;
   font-family: MicrosoftYaHei;
 }
-
 ::-moz-placeholder {
   color: #9b9b9b;
   font-size: 16px;
   font-family: MicrosoftYaHei;
 }
-
 :-ms-input-placeholder {
   color: #9b9b9b;
   font-size: 16px;

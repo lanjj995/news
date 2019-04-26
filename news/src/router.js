@@ -9,64 +9,50 @@ export default new Router({
   routes: [
     // 用户
     {
-      path: '/user',
-      name: 'user',
+
+      path: '/regist',
+      name: 'regist',
       component: function () {
-        return import('./views/user.vue')
-      },
-      children: [
-        {
-          path: 'regist',
-          name: 'regist',
-          component: function () {
-            return import('./components/user/regist.vue');
-          }
-        },
-        {
-          path: 'login',
-          name: 'login',
-          component: function () {
-            return import('./components/user/login.vue');
-          }
-        },
-        {
-          path: 'findpassword',
-          name: 'findpassword',
-          component: function () {
-            return import('./components/user/findpassword.vue');
-          }
-        },
-      ]
+        return import('./views/regist.vue');
+      }
     },
+    {
+      path: '/login',
+      name: 'login',
+      component: function () {
+        return import('./views/login.vue');
+      }
+    },
+    {
+      path: '/findpassword',
+      name: 'findpassword',
+      component: function () {
+        return import('./views/findpsw.vue');
+      }
+    },
+   
     // 新闻
     {
-      path: "/new",
-      name: 'new',
+      path: "/",
+      name:'new',
       component: function () {
         return import("./views/new.vue");
       },
-      children: [
-        {
-          path: "/",
-          name: "list",
-          component: function () {
-            return import("./components/new/new_list.vue");
-          }
-        },
-        {
-          path: "details/:id",
-          name: "details",
-          component: function () {
-            return import("./components/new/details.vue");
-          }
-        }
-      ]
+      
+    },
+    // 详情
+    {
+      path: "/details/:id",
+      name:'details',
+      component: function () {
+        return import("./views/details.vue");
+      },
+      
     },
     // 个人
     {
       path: '/message',
-      name: 'message',
-      beforeEnter:function(to,from,next){
+      beforeEnter: function (to, from, next) {
         if (!localStorage.token) {
           next("/user/login");
         } else {
@@ -94,38 +80,30 @@ export default new Router({
       ]
     },
     {
-      path:'/account',
-      name:'account',
-      beforeEnter:function(to,from,next){
+      path: '/accountmessage',
+      name: 'accountmessage',
+      beforeEnter: function (to, from, next) {
         if (!localStorage.token) {
           next("/user/login");
         } else {
           next();
         }
       },
-      component:function(){
-        return import('./views/account.vue');
+      component: function () {
+        return import('./views/accountmessage.vue');
       },
-      children:[
-        {
-          path: '/',
-          component: function () {
-            return import('./components/account/account-message.vue');
-          }
-        },
-        {
-          path: 'updatepsw',
-          name: 'updatepsw',
-          component: function () {
-            return import('./components/account/account-updatepsw.vue');
-          }
-        }
-      ]
     },
     {
-      path:"/404",
-      name:"404",
+      path: '/accountupdate',
+      name:'accountupdate',
       component:function(){
+        return import ('./views/accountupdate.vue');
+      }
+    },
+    {
+      path: "/404",
+      name: "404",
+      component: function () {
         return import("./views/404.vue");
       }
     }

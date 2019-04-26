@@ -64,19 +64,17 @@ export default {
   },
   methods: {
     getcomments_level(commentId) {
-      comments_level(commentId)
+      let self = this;
+      comments_level({commentId})
         .then(res => {
           if (res.data.code === "success") {
-            this.commentList = res.data.data.comments;
-            this.commentIds = res.data.data.commentIds;
-            let index = this.isShow.indexOf(commentId);
-            if (index===-1) {
-                this.isShow.push(commentId);
-            }  else {
-                this.isShow.splice(index,1);
-            }
+            self.commentList = res.data.data.comments;
+            self.commentIds = res.data.data.commentIds;
+            let index = self.isShow.indexOf(commentId);
+            index === -1 ? self.isShow.push(commentId):self.isShow.splice(index,1);
+          
           } else {
-            this.$message.error(res.data.message);
+            self.$message.error(res.data.message);
           }
         })
         .catch(err => {

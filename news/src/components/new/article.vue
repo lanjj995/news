@@ -1,5 +1,5 @@
 <template>
-  <div class="article" >
+  <div class="article" @click="goDetails(''+ item._id +'')" :title="item.title">
     <div class="msg">
       <div class="title" :title="item.title">{{item.title | titleFilter}}</div>
       <div class="message">
@@ -15,7 +15,7 @@
           </span>
         </div>
       </div>
-      <img :src="item.cover?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+item.cover:newImg" class="articleImg" @click="goDetails(''+ item._id +'')">
+      <!-- <img :src="item.cover?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+item.cover:newImg" class="articleImg"> -->
       <div class="time">
         <p>{{item.create_time | getTime}}</p>
         <p :title="item.source">{{item.source | sourcefilter}}</p>
@@ -40,6 +40,9 @@ export default {
   methods:{
     goDetails(id){
       this.$router.push({name:'details',params:{id}});
+    },
+    isless10(value) {
+      return value > 10 ? value : '0' + vaue;
     }
   },
   filters:{
@@ -49,37 +52,20 @@ export default {
     getTime(value){
       let create_time = new Date(value);
       let now = new Date();
-      let cha = now.getTime - create_time;
-      if (cha < 43200000) {
-        if (cha < 3600000) {
-          return cha/60000+"分钟前";
-        } else {
-          return cha/3600000+"小时前";
-        }
-      } else {
-        function isless10(value) {
-          if (value > 10) {
-            return value;
-          } else {
-            return "0"+value;
-          }
-        }
-        let month = create_time.getMonth()+1;
-        let day = create_time.getDate();
-        return isless10(month) + "月" + isless10(day) + "日";
-      }
+      let cha = now.getTime() - create_time;
+      // 小于一天
+      return (cha < 24*60*60*1000) 
+      ? (cha < 60*60*1000 ? Math.floor(cha/(60*1000)) + '分钟前' : Math.floor(cha/(60*60*100)) + '小时前') 
+      :  this.isless10(create_time.getMonth()+1) + "月" + this.isless10(create_time.getDate()) + "日";
     },
     sourcefilter(value){
-      if (value.length > 5) {
-          return value.substring(0,5)+"...";
-      } else {
-        return value;
-      }
+      return value.length > 5 ? value.substring(0,5)+"..." : value;
     }
   },
   created(){
-    this.commentUrl = require("@/assets/icon_comment.png");
-    this.sawUrl = require("@/assets/icon_saw.png");
+    let self = this;
+    self.commentUrl = require("@/assets/icon_comment.png");
+    self.sawUrl = require("@/assets/icon_saw.png");
     }
 };
 </script>
@@ -90,6 +76,7 @@ export default {
   height: 300px;
   margin-top: 50px;
   position: relative;
+  cursor: pointer;
 }
 .article> .msg {
   width: 80%;

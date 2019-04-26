@@ -1,12 +1,16 @@
 <template>
-  <div class="form">
+  <div class="main">
+    <headerComponent style="background:#0074ff;color:#fff;" :color="'#ffffff'"></headerComponent>
+    <div class="content">
+       <div class="form">
     <div class="title">
       <span></span>账户设置
     </div>
     <div class="content">
       <div class="avator">
         <img
-          :src="src?src:this.$store.state.avatar?this.$store.state.avatar:header"
+        :src="this.src?src:this.$store.state.avatar?this.$store.state.avatar:this.$store.state.user.avatar?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+this.$store.state.user.avatar:header"
+
           @mouseover="isshow=true"
         >
         <label for="avator" class="avatorLable" v-show="isshow" @mouseout="isshow=false">上传头像</label>
@@ -57,14 +61,22 @@
       ></inputButtonCom>
     </div>
   </div>
+    </div>
+    <footerComponent class="footer"></footerComponent>
+  </div>
 </template>
 <script>
-import inputCom from "../input/input-text";
-import inputButtonCom from "../input/input-button";
-import { updateUserMessage } from "@/api/account.js";
-import header from "@/assets/header.png";
+import headerComponent from "../components/common/header";
+import footerComponent from "../components/common/footer";
+import inputCom from "../components/input/input-text";
+import inputButtonCom from "../components/input/input-button";
+import { updateUserMessage } from "../api/account.js";
+import { tokenMethod } from "../api/token.js";
+import header from "../assets/header.png";
 export default {
   components: {
+    headerComponent,
+    footerComponent,
     inputCom,
     inputButtonCom
   },
@@ -81,22 +93,24 @@ export default {
   methods: {
     // 检查文件大小
     sheckFileSize() {
+
+      let self = this;
       let avator = document.getElementById("avator");
       let file = avator.files[0];
       console.log(file.size);
       if (file) {
         let size = file.size / 1024;
         if (size > 300) {
-          this.$message.error("上传文件不能大于300K");
+          self.$message.error("上传文件不能大于300K");
         } else {
-          this.checkFile = true;
+          self.checkFile = true;
           // 获取文件读取对象
           var reader = new FileReader();
           // 文件读取完后的展示图片
           reader.addEventListener(
             "load",
             () => {
-              this.src = reader.result;
+              self.src = reader.result;
             },
             false
           );
@@ -105,68 +119,51 @@ export default {
       }
     },
     toUpdatePsw() {
-      this.$router.push("/account/updatepsw");
+      this.$router.push("/accountupdate");
     },
     updateUserMessageMethod() {
-      if (this.checkFile) {
+      let self = this;
+      if (self.checkFile) {
         // 有头像
-        if (this.checkUsername === "err_long") {
-          this.$message.error("昵称长度不能大于32个字符");
+        if (self.checkUsername === "err_long") {
+          self.$message.error("昵称长度不能大于32个字符");
           return;
         }
         let avator = document.getElementById("avator");
         let file = avator.files[0];
-        updateUserMessage(this.$store.state.user.token, file, this.username)
+        updateUserMessage({token:self.$store.state.user.token,avatar:file, nickname:self.username})
           .then(res => {
             if (res.data.code === "success") {
-              this.$store.state.user.nickname = this.username;
-              this.$store.state.avatar = this.src;
-              localStorage.avatar = this.src;
-              localStorage.user = JSON.stringify(this.$store.state.user);
-              this.$message({ type: "success", message: res.data.message });
+              let user = JSON.parse(localStorage.getItem('user'));
+              user.nick = self.nickname;
+              self.$store.commit('setUser',user);
+              self.$store.commit('setAvatar',self.src);
+              self.$message({ type: "success", message: res.data.message });
             } else {
-              if (res.data.code === "account_token_invalid") {
-                  this.$alert("消息提示", res.data.message, {
-                    comfirmButtonText: "确认",
-                    callback: action => {
-                      this.$router.push("/user/login");
-                    }
-                  });
-                } else {
-                  this.$message.error(res.data.message);
-                }
+             tokenMethod({code:res.data.code,message:res.data.message,self});
             }
           })
           .catch(err => {
             // 错误处理
-            this.$router.push("/404");
           });
       } else {
-        if (this.checkUsername === "success") {
-          updateUserMessage(this.$store.state.user.token, null, this.username)
+        if (self.checkUsername === "success") {
+          updateUserMessage({token:self.$store.state.user.token, avatar:null, nickname:self.username})
             .then(res => {
               if (res.data.code === "success") {
-                this.$store.state.user.nickname = this.username;
-                localStorage.user = JSON.stringify(this.$store.state.user);
+                let user = JSON.parse(localStorage.getItem('user'));
+              user.nick = self.nickname;
+              self.$store.commit('setUser',user);
+              self.$message({ type: "success", message: res.data.message });
               } else {
-                if (res.data.code === "account_token_invalid") {
-                  this.$alert("消息提示", res.data.message, {
-                    comfirmButtonText: "确认",
-                    callback: action => {
-                      this.$router.push("/user/login");
-                    }
-                  });
-                } else {
-                  this.$message.error(res.data.message);
-                }
+                tokenMethod({code:res.data.code,message:res.data.message,self});
               }
             })
             .catch(err => {
               // 错误处理
-              this.$router.push("/404");
             });
         } else {
-          this.$alert(this.checkUsername, "提示信息", {
+          self.$alert(this.checkUsername, "提示信息", {
             confirmButtonText: "确定"
           });
         }
@@ -175,29 +172,55 @@ export default {
   },
   watch: {
     username(value) {
+      let self = this;
       if (!value) {
-        this.checkUsername = "err_null";
-        this.checkUsername = "昵称不能为空";
+
+        self.checkUsername = "err_null";
+        self.checkUsername = "昵称不能为空";
         return;
       }
       if (value.length > 32) {
-        this.$message.error("昵称长度不能大于32个字符");
-        this.checkUsername = "昵称长度不能大于32个字符";
+        self.$message.error("昵称长度不能大于32个字符");
+        self.checkUsername = "昵称长度不能大于32个字符";
         return;
       }
-      if (value === this.$store.state.user.nickname) {
-        this.checkUsername = "您的昵称没有改变";
+      if (value === self.$store.state.user.nickname) {
+        self.checkUsername = "您的昵称没有改变";
         return;
       }
-      this.checkUsername = "success";
+      self.checkUsername = "success";
     }
   },
   created() {
-    this.username = this.$store.state.user.nickname;
+    let self = this;
+    self.username = self.$store.state.user.nickname;
+    document.documentElement.scrollTop = 0;
+    window.onscroll = function(){}
   }
 };
 </script>
 <style scoped>
+.main {
+  width: 100%;
+  height: 100%;
+  background: #f9f9f9;
+  position: relative;
+}
+.content {
+  padding: 50px 0 50px 0;
+}
+.form {
+  width: 1032px;
+  height: 566px;
+  background: #ffffff;
+  box-shadow: 2px 2px 4px 0 rgba(0, 0, 0, 0.11);
+  margin: auto;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+}
+
 .title {
   height: 30px;
   padding: 30px 0 30px 0;

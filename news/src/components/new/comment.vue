@@ -92,6 +92,7 @@ import down from "@/assets/icon_thumb_down.png";
 import downActive from "@/assets/icon_thumb_down_active.png";
 import buttonCom from "../input/input-button";
 import { addcomment, commentRate } from "@/api/new.js";
+import { tokenMethod } from "@/api/token.js";
 export default {
   name: "commentBox",
   props: ["commentList", "commentIds", "level", "flag"],
@@ -105,73 +106,88 @@ export default {
     };
   },
   methods: {
+    
     addcommentMethod() {
-      if (this.$store.state.user) {
-        if (!this.commentRateContent) {
-          this.$message({
+      let self = this;
+      if (self.$store.state.user) {
+        if (!self.commentRateContent) {
+          self.$message({
             message: "请输入评论内容",
             type: "warning"
           });
         } else {
-          addcomment(
-            null,
-            this.commentId,
-            this.commentRateContent,
-            this.$store.state.user.token
-          )
+          addcomment({
+            articleId:null,
+            commentId:this.commentId,
+            content:this.commentRateContent,
+            token:this.$store.state.user.token
+          })
             .then(res => {
               if (res.data.code === "success") {
-                this.$emit("load");
-                this.$message({
+                self.$emit("load");
+                self.$message({
                   message: "评论成功",
                   type: "success"
                 });
               } else {
-                if (res.data.code === "account_token_invalid") {
-                  this.$alert("消息提示", res.data.message, {
-                    comfirmButtonText: "确认",
-                    callback: action => {
-                      this.$router.push("/user/login");
-                    }
-                  });
-                } else {
-                  this.$message.error(res.data.message);
-                }
+             tokenMethod({code:res.data.code,message:res.data.message,self});
               }
             })
             .catch(err => {
               // 错误处理
-              this.$router.push("/404");
+              self.$router.push("/404");
             });
         }
       } else {
-        this.$router.push({ path: "/user/login" });
+        self.$router.push({ path: "/user/login" });
       }
     },
     addcommentRate(commentId, rate) {
-      commentRate(commentId, this.$store.state.user.token, rate)
+      let self = this;
+      if (self.isup === upActive){
+        self.$message({
+          type:'warning',
+          message:'已顶过'
+        });
+        return ;
+      } 
+      if (self.isdown === downActive) {
+        self.$message({
+          type:'warning',
+          message:'已踩过'
+        });
+        return ;
+      }
+      if (!self.$store.state.user.token) {
+         self.$confirm("登陆后才能评论", '提示', {
+        confirmButtonText: '去登陆',
+        cancelButtonText: '返回',
+        type: 'warning'
+      }).then(() => {
+        self.$router.push({name:'login'});
+      
+      }).catch(() => {
+        
+      });
+      return ;
+      }
+      commentRate({commentId, token:this.$store.state.user.token, rate})
         .then(res => {
           if (res.data.code === "success") {
             if (rate === "against") {
-              this.isdown = downActive;
+              self.isdown = downActive;
+              self.commentList[commentId]['against'] += 1;
             } else {
-              this.isup = upActive;
+self.isup = upActive;
+              self.commentList[commentId]['vote']+= 1;
+
             }
           } else {
-            if (res.data.code === "account_token_invalid") {
-              this.$alert("消息提示", res.data.message, {
-                comfirmButtonText: "确认",
-                callback: action => {
-                  this.$router.push("/user/login");
-                }
-              });
-            } else {
-              this.$message.error(res.data.message);
-            }
+            tokenMethod({code:res.data.code,message:res.data.message,self});
           }
         })
         .catch(err => {
-          this.$router.push("/404");
+          self.$router.push("/404");
         });
     }
   },

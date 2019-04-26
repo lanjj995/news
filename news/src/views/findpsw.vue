@@ -1,11 +1,14 @@
 <template>
-  <div class="form">
+  <div class="main">
+    <headerCom></headerCom>
+    <div class="content">
+       <div class="form">
     <div class="title">找回密码</div>
     <inputComponent type="tel" placeholder="输入手机号" v-model="phone">
       <span class="check">{{checkObject.checkPhoneValue}}</span>
     </inputComponent>
     <inputComponent type="text" :width="228" placeholder="图形验证码" v-model="imgCaptcha">
-      <span v-html="captcha" class="captcha"></span>
+      <span v-html="captcha" class="captcha" @click="getImgCapta"></span>
       <span class="check">{{checkObject.checkImgCaptchaVlaue}}</span>
     </inputComponent>
     <inputComponent :width="228" placeholder="短信验证码" v-model="smsCaptcha">
@@ -39,10 +42,16 @@
       <buttonComponent type="button" class="finishButton" value="完成" @click.native="findpswMethod"></buttonComponent>
     </div>
   </div>
+    </div>
+    <footerCom></footerCom>
+  </div>
 </template>
+
 <script>
-import inputComponent from "../input/input-text";
-import buttonComponent from "../input/input-button";
+import headerCom from "../components/common/header";
+import footerCom from "../components/common/footer";
+import inputComponent from "../components/input/input-text";
+import buttonComponent from "../components/input/input-button";
 import { findPassword } from "@/api/user.js";
 import {
   getImgCaptcha,
@@ -73,72 +82,79 @@ export default {
     };
   },
   components: {
+      headerCom,footerCom,
     inputComponent,
     buttonComponent
   },
   methods: {
     checkPhone() {
-      if (this.phone) {
-        if (!/^1[34578]\d{9}$/.test(this.phone)) {
-          this.checkObject.checkPhoneValue = "手机号码有误，请重填";
+      let self = this;
+      if (self.phone) {
+        if (!/^1[34578]\d{9}$/.test(self.phone)) {
+          self.checkObject.checkPhoneValue = "手机号码有误，请重填";
           return false;
         } else {
-          this.checkObject.checkPhoneValue = "";
+          self.checkObject.checkPhoneValue = "";
           return true;
         }
       } else {
-        this.checkObject.checkPhoneValue = "请输入手机号";
+        self.checkObject.checkPhoneValue = "请输入手机号";
         return false;
       }
     },
     checkImgCaptcha() {
-      if (this.imgCaptcha) {
-        this.checkObject.checkImgCaptchaVlaue = "";
+      let self =  this;
+      if (self.imgCaptcha) {
+        self.checkObject.checkImgCaptchaVlaue = "";
         return true;
       } else {
-        this.checkObject.checkImgCaptchaVlaue = "请输入图形验证码";
+        self.checkObject.checkImgCaptchaVlaue = "请输入图形验证码";
         return false;
       }
     },
     checkSMSCaptcha() {
-      if (this.smsCaptcha) {
-        this.checkObject.checkSMSCaptchaValue = "";
+      let self = this;
+      if (self.smsCaptcha) {
+        self.checkObject.checkSMSCaptchaValue = "";
         return true;
       } else {
-        this.checkObject.checkSMSCaptchaValue = "请输入手机验证码";
+        self.checkObject.checkSMSCaptchaValue = "请输入手机验证码";
         return false;
       }
     },
     checkPassword() {
-      if (this.password) {
-        if (!/^[\w]{6,12}$/.test(this.password)) {
-          this.checkObject.checkPasswordValue = "必须是6-24位";
+      let self = this;
+      if (self.password) {
+        if (!/^[\w]{6,12}$/.test(self.password)) {
+          self.checkObject.checkPasswordValue = "必须是6-24位";
           return false;
         } else {
-          this.checkObject.checkPasswordValue = "";
+          self.checkObject.checkPasswordValue = "";
           return true;
         }
       } else {
-        this.checkObject.checkPasswordValue = "请输入密码";
+
+        self.checkObject.checkPasswordValue = "请输入密码";
         return false;
       }
     },
     checkComfirmPassword() {
-      if (this.comfirPasssword) {
-        if (!/^[\w]{6,12}$/.test(this.comfirPasssword)) {
-          this.checkObject.checkComfirmPasswordValue = "必须是6-24位";
+      let self = this;
+      if (self.comfirPasssword) {
+        if (!/^[\w]{6,12}$/.test(self.comfirPasssword)) {
+          self.checkObject.checkComfirmPasswordValue = "必须是6-24位";
           return false;
         } else {
-          if (this.comfirPasssword == this.password) {
-            this.checkObject.checkComfirmPasswordValue = "";
+          if (self.comfirPasssword == self.password) {
+            self.checkObject.checkComfirmPasswordValue = "";
             return true;
           } else {
-            this.checkObject.checkComfirmPasswordValue = "两次密码不一致";
+            self.checkObject.checkComfirmPasswordValue = "两次密码不一致";
             return false;
           }
         }
       } else {
-        this.checkObject.checkComfirmPasswordValue = "请确认密码";
+        self.checkObject.checkComfirmPasswordValue = "请确认密码";
         return false;
       }
     },
@@ -147,20 +163,21 @@ export default {
     },
    // 获取短信验证码
     getCaptcha() {
-      var isPhone = this.checkPhone();
+      let self = this;
+      var isPhone = self.checkPhone();
       if (!isPhone) return;
-      if (this.captchasuccess) {
-        this.getCaptchaRecevie();
+      if (self.captchasuccess) {
+        self.getCaptchaRecevie();
       } else {
-         getSmsCaptcha(this.phone, "reset", this.imgCaptcha)
+         getSmsCaptcha({phone:self.phone, type:"reset", imgCaptcha:self.imgCaptcha})
          .then(res => {
           if (
             res.data.code === "success" ||
             res.data.code === "sms_captcha_has_sent"
           ) {
-            this.captchasuccess = true;
+            self.captchasuccess = true;
           } else {
-            this.$message.error(res.data.message);
+            self.$message.error(res.data.message);
           }
         })
         .catch(err => {});
@@ -169,62 +186,68 @@ export default {
     },
     // 获取短信验证码
     getCaptchaRecevie() {
-      getSmsCaptchaReceive(this.phone, "reset")
+      let self = this;
+      getSmsCaptchaReceive({phone:self.phone, type:"reset"})
         .then(res => {
-          if (res.data.code === "success") {
-            this.$message({
-              type: "success",
-              message: "您的短信验证码是" + res.data.data.smsCaptcha
-            });
-          } else {
-            this.$message.error(res.data.message);
-          }
+          res.data.code === "success" ? self.$message({type: "success",message: "您的短信验证码是" + res.data.data.smsCaptcha}):self.$message.error(res.data.message);; 
         })
         .catch(err => {
           // 错误处理
         });
     },
-
-    findpswMethod() {
-      var isPhone = this.checkPhone();
-      if (!isPhone) return;
-      var isImgCaptcha = this.checkImgCaptcha();
-      if (!isImgCaptcha) return;
-      var isSMSCaptcha = this.checkSMSCaptcha();
-      if (!isSMSCaptcha) return;
-      var isPassword = this.checkPassword();
-      if (!isPassword) return;
-      var isComfirmPassword = this.checkComfirmPassword();
-      if (!isComfirmPassword) return;
-      regist(this.phone, this.password, this.smsCaptcha);
-      findPassword(this.phone, this.smsCaptcha, this.password)
-        .then(res => {
-          if (res.data.code === "success") {
-            this.$message({
-              type: "success",
-              message: "修改成功"
-            });
-          } else {
-            this.$message.error(res.data.message);
-          }
-        })
-        .catch(err => {});
-    }
-  },
-  created() {
-    this.$route.query.flag ? (this.isRegist = false) : (this.isRegist = true);
-    getImgCaptcha()
+    // 获取图片验证码
+    getImgCapta() {
+      getImgCaptcha()
       .then(res => {
         this.captcha = res.data;
       })
       .catch(err => {
         console.log(err);
       });
+    },
+    findpswMethod() {
+      let self = this;
+      let isPhone = self.checkPhone();
+      if (!isPhone) return;
+      let isImgCaptcha = self.checkImgCaptcha();
+      if (!isImgCaptcha) return;
+      let isSMSCaptcha = self.checkSMSCaptcha();
+      if (!isSMSCaptcha) return;
+      let isPassword = self.checkPassword();
+      if (!isPassword) return;
+      let isComfirmPassword = self.checkComfirmPassword();
+      if (!isComfirmPassword) return;
+      findPassword({phone:self.phone, smsCaptcha:self.smsCaptcha, password:self.password})
+        .then(res => {
+         if (res.data.code === "success")  {
+          self.$message({type:'success',message:'修改成功'});
+          self.$router.push({name:'login'});
+         } else {
+           self.$message.error(res.data.message);
+           } 
+        })
+        .catch(err => {});
+    }
+  },
+  created() {
+    this.getImgCapta();
+    document.documentElement.scrollTop = 0;
+
   },
  
 };
 </script>
+
 <style scoped>
+.captcha {
+  cursor: pointer;
+}
+.content {
+  width: 100%;
+  height: 860px;
+  background: url("../assets/bg_sign.png");
+  position: relative;
+}
 .form {
   width: 568px;
   position: absolute;
@@ -275,16 +298,18 @@ export default {
   margin-top: 33.5px;
 }
 .captcha {
-    display: inline-block;
+  display: inline-block;
   width: 140px;
   margin-left: 12px;
   height: 56px;
   float: right;
   padding: 10px 30px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
+
 .check {
   color: #f00;
   font-size: 12px !important;
 }
 </style>
+

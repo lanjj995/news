@@ -1,28 +1,37 @@
 <template>
   <header>
-    <div :class="[color?'logoWhite':'logo']"></div>
-    <span @click="goNew">新闻项目</span>
-     <div class="user-header" v-if="this.$store.state.token">
-      <img :src="this.$store.state.avatar?this.$store.state.avatar:defaultAvator" alt="头像" id="header" class="goMessage" @click="goMessage">
-      <span id="username" @click="goMessage" class="goMessage">{{this.$store.state.user.nickname}}</span>
+    <div :class="[color?'logoWhite':'logo']" @click="goNew"></div>
+    <span @click="goNew" title="新闻">新闻项目</span>
+    <div class="user-header" title="新闻" v-if="this.$store.state.token">
+      <img
+        :src="this.$store.state.avatar?this.$store.state.avatar:this.$store.state.user.avatar?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+this.$store.state.user.avatar:defaultAvator"
+        alt="头像"
+        id="header"
+        class="goMessage"
+        @click="goMessage"
+        title="我的消息"
+      >
+       
+      <span id="username"  title="我的消息" @click="goMessage" class="goMessage">{{this.$store.state.user.nickname}}</span>
 
-      <img :src="imgUrl" class="arrow_down" @click="falg = !falg">
-      <nav :style="{display:falg?'block':'none'}">
-        <li @click="goAccount">
-          <img src="@/assets/icon_my.png">
-          我的账户
-        </li>
-        <li @click="loginOut">
-          <img src="@/assets/icon_out.png">
-          退出登录
-        </li>
-      </nav>
+      <div class="arrow" @mouseover="falg = true" @mouseout="falg = false">
+        <img :src="imgUrl" class="arrow_down">
+        <nav v-show="falg">
+          <li @click="goAccount">
+            <img src="@/assets/icon_my.png">
+            我的账户
+          </li>
+          <li @click="loginOut">
+            <img src="@/assets/icon_out.png">
+            退出登录
+          </li>
+        </nav>
+      </div>
     </div>
     <div class="login-regist" v-else>
-      <router-link to="/user/login" :style="{color:color?color:'#0074ff;'}">登录</router-link>
-      <router-link to="/user/regist" :style="{color:color?color:'#0074ff;'}">注册</router-link>
+      <router-link to="/login" :style="{color:color?color:'#0074ff;'}">登录</router-link>
+      <router-link to="/regist" :style="{color:color?color:'#0074ff;'}">注册</router-link>
     </div>
-   
   </header>
 </template>
 <script>
@@ -34,27 +43,27 @@ export default {
   data() {
     return {
       falg: false,
-      user:{},
-      avatar:"",
-      defaultAvator,
+      user: {},
+      avatar: "",
+      defaultAvator
     };
   },
-  methods:{
-    goNew(){
-      this.$router.push({path:'/new'});
+  methods: {
+    goNew() {
+      this.$router.push({ name: "new" });
     },
-    goMessage(){
-      this.$router.push({path:'/message'});
+    goMessage() {
+      this.$router.push({ path: "/message" });
     },
-    goAccount(){
-      this.$router.push({path:'/account'});
+    goAccount() {
+      this.$router.push({ path: "/accountmessage" });
     },
-    loginOut(){
-      this.$store.state.user = null;
-      localStorage.user = "";
-      this.$store.state.token = null;
-      localStorage.token = "";
-      this.$router.push({path:'/user/login'});
+    loginOut() {
+      let self = this;
+      self.$store.commit('setUser','');
+      self.$store.commit('setToken','');
+      self.$store.commit('setAvatar','');
+      this.$router.push({ name: "login" });
     }
   },
   computed: {
@@ -64,16 +73,15 @@ export default {
         : require("@/assets/icon_arrow_down.png");
     }
   },
-  created(){
+  created() {
     this.user = this.$store.state.user;
     this.avatar = this.$store.state.avatar;
-    
   }
 };
 </script>
 
 <style>
-.goMessage{
+.goMessage {
   cursor: pointer;
 }
 header {
@@ -90,11 +98,13 @@ a {
 
 header > .logo {
   display: inline-block;
-  width: 130px;
+  width: 120px;
   height: 80px;
   background: url("../../assets/logo_color.png") 100% 50% no-repeat;
   vertical-align: middle;
   margin: 0 30px 0 130px;
+  cursor: pointer;
+
 }
 
 .logoWhite {
@@ -104,6 +114,7 @@ header > .logo {
   background: url("../../assets/logo_white.png") 100% 50% no-repeat;
   vertical-align: middle;
   margin: 0 30px 0 130px;
+  cursor: pointer;
 }
 
 header > span {
@@ -131,7 +142,6 @@ header > .login-regist > a:last-child {
   font-size: 18px;
   margin-right: 130px;
   vertical-align: middle;
-  position: relative;
 }
 header > .user-header > #header {
   width: 40px;
@@ -146,6 +156,11 @@ header > .user-header > .arrow_down {
   vertical-align: middle;
   cursor: pointer;
 }
+.arrow {
+  display: inline-block;
+  padding-left:30px;
+  position: relative;
+}
 
 nav {
   width: 140px;
@@ -155,8 +170,7 @@ nav {
   box-shadow: -2px -2px 3px 1px rgba(39, 52, 101, 0.08),
     2px 2px 3px 1px rgba(39, 52, 101, 0.08);
   position: absolute;
-  top: 80px;
-  right: 0;
+  right:0;
   z-index: 999;
   background: #fff;
 }
@@ -170,4 +184,5 @@ nav > li > img {
   vertical-align: middle;
   margin-right: 9px;
 }
+
 </style>
