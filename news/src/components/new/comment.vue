@@ -85,17 +85,20 @@
 
 <script>
 // 引入默认头像
-import avatar from "@/assets/logo.png";
-import up from "@/assets/icon_thumb_up.png";
-import upActive from "@/assets/icon_thumb_up_active.png";
-import down from "@/assets/icon_thumb_down.png";
-import downActive from "@/assets/icon_thumb_down_active.png";
+import avatar from "../../assets/logo.png";
+import up from "../../assets/icon_thumb_up.png";
+import upActive from "../../assets/icon_thumb_up_active.png";
+import down from "../../assets/icon_thumb_down.png";
+import downActive from "../../assets/icon_thumb_down_active.png";
 import buttonCom from "../input/input-button";
-import { addcomment, commentRate } from "@/api/new.js";
-import { tokenMethod } from "@/api/token.js";
+import { addComment, commentRate } from "../../api/new.js";
+import { filterTime,tokenMethod } from "../../utils/utils";
 export default {
   name: "commentBox",
   props: ["commentList", "commentIds", "level", "flag"],
+  components: {
+    buttonCom
+  },
   data() {
     return {
       commentRateShow: false,
@@ -106,7 +109,6 @@ export default {
     };
   },
   methods: {
-    
     addcommentMethod() {
       let self = this;
       if (self.$store.state.user) {
@@ -117,10 +119,10 @@ export default {
           });
         } else {
           addcomment({
-            articleId:null,
-            commentId:this.commentId,
-            content:this.commentRateContent,
-            token:this.$store.state.user.token
+            articleId: null,
+            commentId: self.commentId,
+            content: self.commentRateContent,
+            token: self.$store.state.user.token
           })
             .then(res => {
               if (res.data.code === "success") {
@@ -130,7 +132,11 @@ export default {
                   type: "success"
                 });
               } else {
-             tokenMethod({code:res.data.code,message:res.data.message,self});
+                tokenMethod({
+                  code: res.data.code,
+                  message: res.data.message,
+                  self
+                });
               }
             })
             .catch(err => {
@@ -144,46 +150,49 @@ export default {
     },
     addcommentRate(commentId, rate) {
       let self = this;
-      if (self.isup === upActive){
+      if (self.isup === upActive) {
         self.$message({
-          type:'warning',
-          message:'已顶过'
+          type: "warning",
+          message: "已顶过"
         });
-        return ;
-      } 
+        return;
+      }
       if (self.isdown === downActive) {
         self.$message({
-          type:'warning',
-          message:'已踩过'
+          type: "warning",
+          message: "已踩过"
         });
-        return ;
+        return;
       }
       if (!self.$store.state.user.token) {
-         self.$confirm("登陆后才能评论", '提示', {
-        confirmButtonText: '去登陆',
-        cancelButtonText: '返回',
-        type: 'warning'
-      }).then(() => {
-        self.$router.push({name:'login'});
-      
-      }).catch(() => {
-        
-      });
-      return ;
+        self
+          .$confirm("登陆后才能评论", "提示", {
+            confirmButtonText: "去登陆",
+            cancelButtonText: "返回",
+            type: "warning"
+          })
+          .then(() => {
+            self.$router.push({ name: "login" });
+          })
+          .catch(() => {});
+        return;
       }
-      commentRate({commentId, token:this.$store.state.user.token, rate})
+      commentRate({ commentId, token: this.$store.state.user.token, rate })
         .then(res => {
           if (res.data.code === "success") {
             if (rate === "against") {
               self.isdown = downActive;
-              self.commentList[commentId]['against'] += 1;
+              self.commentList[commentId]["against"] += 1;
             } else {
-self.isup = upActive;
-              self.commentList[commentId]['vote']+= 1;
-
+              self.isup = upActive;
+              self.commentList[commentId]["vote"] += 1;
             }
           } else {
-            tokenMethod({code:res.data.code,message:res.data.message,self});
+            tokenMethod({
+              code: res.data.code,
+              message: res.data.message,
+              self
+            });
           }
         })
         .catch(err => {
@@ -201,38 +210,10 @@ self.isup = upActive;
   },
   filters: {
     getTime(value) {
-      let create_time = new Date(value);
-      let now = new Date();
-      let cha = now.getTime - create_time;
-
-      function isless10(value) {
-        if (value >= 10) {
-          return value;
-        } else {
-          return "0" + value;
-        }
-      }
-      let year = create_time.getFullYear();
-      let month = create_time.getMonth() + 1;
-      let day = create_time.getDate();
-      let hour = create_time.getHours();
-      let minute = create_time.getMinutes();
-      return (
-        year +
-        "-" +
-        isless10(month) +
-        "-" +
-        isless10(day) +
-        " " +
-        isless10(hour) +
-        ":" +
-        isless10(minute)
-      );
+      return filterTime(value);
     }
   },
-  components: {
-    buttonCom
-  },
+
   watch: {
     commentIds(value) {
       this.commentIds1 = value;
@@ -241,7 +222,6 @@ self.isup = upActive;
   created() {
     this.commentIds1 = this.commentIds;
   },
-  mounted() {}
 };
 </script>
 

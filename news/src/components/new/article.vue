@@ -1,72 +1,44 @@
 <template>
-  <div class="article" @click="goDetails(''+ item._id +'')" :title="item.title">
-    <div class="msg">
-      <div class="title" :title="item.title">{{item.title | titleFilter}}</div>
-      <div class="message">
-        <div class="message-left">
-          <span v-for="i in item.keywords" :key="i">{{i}}</span>
+  <router-link :to="{name:'details',params:{id:item._id}}">
+    <div class="article" :title="item.title">
+      <div class="msg">
+        <div class="title overflow" :title="item.title">{{item.title}}</div>
+        <div class="message">
+          <div class="message-left">
+            <span v-for="i in item.keywords" :key="i">{{i}}</span>
+          </div>
+          <div class="message-right">
+            <span>
+              <img src="../../assets/icon_comment.png" style="vertical-align:middle;">
+              {{item.comment_sum}}
+            </span>
+            <span>
+              <img src="../../assets/icon_saw.png" style="vertical-align:middle;">
+              {{item.comment_sum}}
+            </span>
+          </div>
         </div>
-        <div class="message-right">
-          <span>
-            <img :src="commentUrl" style="vertical-align:middle;"> {{item.comment_sum}}
-          </span>
-          <span>
-            <img :src="sawUrl" style="vertical-align:middle;"> {{item.comment_sum}}
-          </span>
+        <img v-lazy="this.$store.state.baseImgUrl+item.cover" class="article_img">
+        <!-- <img :src="item.cover?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+item.cover:newImg" class="articleImg"> -->
+        <div class="time">
+          <p>{{item.create_time | getTime}}</p>
+          <p :title="item.source" class="overflow">{{item.source}}</p>
         </div>
-      </div>
-      <!-- <img :src="item.cover?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+item.cover:newImg" class="articleImg"> -->
-      <div class="time">
-        <p>{{item.create_time | getTime}}</p>
-        <p :title="item.source">{{item.source | sourcefilter}}</p>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>
 <script>
-import newImg from "@/assets/new.png";
-
+import {filterTime} from '../../utils/utils';
 export default {
-  props:{
-    item:Object
+  props: {
+    item: Object
   },
-  data(){
-    return {
-      commentUrl:"",
-      sawUrl:"",
-      newImg
+  filters: {
+    getTime(value) {
+      return filterTime(value);
     }
-  },
-  methods:{
-    goDetails(id){
-      this.$router.push({name:'details',params:{id}});
-    },
-    isless10(value) {
-      return value > 10 ? value : '0' + vaue;
-    }
-  },
-  filters:{
-    titleFilter(value) {
-        return value.length>23?value.substring(0,23)+"...":value;
-    },
-    getTime(value){
-      let create_time = new Date(value);
-      let now = new Date();
-      let cha = now.getTime() - create_time;
-      // 小于一天
-      return (cha < 24*60*60*1000) 
-      ? (cha < 60*60*1000 ? Math.floor(cha/(60*1000)) + '分钟前' : Math.floor(cha/(60*60*100)) + '小时前') 
-      :  this.isless10(create_time.getMonth()+1) + "月" + this.isless10(create_time.getDate()) + "日";
-    },
-    sourcefilter(value){
-      return value.length > 5 ? value.substring(0,5)+"..." : value;
-    }
-  },
-  created(){
-    let self = this;
-    self.commentUrl = require("@/assets/icon_comment.png");
-    self.sawUrl = require("@/assets/icon_saw.png");
-    }
+  }
 };
 </script>
 <style scoped>
@@ -78,9 +50,13 @@ export default {
   position: relative;
   cursor: pointer;
 }
-.article> .msg {
+.article > .msg {
   width: 80%;
   float: right;
+}
+.article .article_img{
+  width: 418.6px;
+  height: 184.6px;
 }
 .msg > .title {
   font-size: 24px;
@@ -95,7 +71,6 @@ export default {
 }
 .message-left {
   display: inline-block;
-  float: left;
 }
 .message-left > span {
   margin-right: 20px;
@@ -111,10 +86,7 @@ export default {
   display: block;
   clear: both;
 }
-.articleImg {
-  width: 418.6px;
-  height: 184.6px;
-}
+
 .time {
   width: 140px;
   height: 78px;
@@ -138,5 +110,10 @@ export default {
   padding-top: 4px;
   box-sizing: border-box;
   font-size: 14px;
+}
+.overflow {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 </style>

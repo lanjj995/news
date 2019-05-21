@@ -33,19 +33,20 @@
           ></comment>
         </div>
       </div>
-      <p class="commentform" @click="goDetails(comment.articleId._id)">{{comment.articleId.title}}</p>
+      <router-link :to="{name:'details',params:{id:comment.articleId._id}}"></router-link>
+      <p class="commentform">{{comment.articleId.title}}</p>
     </div>
   </div>
 </template>
 <script>
-import up from "@/assets/icon_thumb_up.png";
-import upActive from "@/assets/icon_thumb_up_active.png";
-import down from "@/assets/icon_thumb_down.png";
-import downActive from "@/assets/icon_thumb_down_active.png";
-import comment from "@/components/new/comment.vue";
-import arrowDown from "@/assets/icon_arrow_down_color.png";
-import arrowUp from "@/assets/icon_arrow_up_color.png";
-import { comments_level } from "@/api/account.js";
+import up from "../../assets/icon_thumb_up.png";
+import upActive from "../../assets/icon_thumb_up_active.png";
+import down from "../../assets/icon_thumb_down.png";
+import downActive from "../../assets/icon_thumb_down_active.png";
+import comment from "../new/comment.vue";
+import arrowDown from "../../assets/icon_arrow_down_color.png";
+import arrowUp from "../../assets/icon_arrow_up_color.png";
+import { comments_level } from "../../api/account.js";
 export default {
   props: ["comments"],
   data() {
@@ -81,52 +82,20 @@ export default {
           // 错误处理
         });
     },
-    goDetails(id) {
-       this.$router.push({name:'details',params:{id}});
-    }
+
   },
   filters: {
     getTime(value) {
-      let create_time = new Date(value);
-      let now = new Date();
-      let cha = now.getTime - create_time;
-
-      function isless10(value) {
-        if (value >= 10) {
-          return value;
-        } else {
-          return "0" + value;
-        }
-      }
-      let year = create_time.getFullYear();
-      let month = create_time.getMonth() + 1;
-      let day = create_time.getDate();
-      let hour = create_time.getHours();
-      let minute = create_time.getMinutes();
-      return (
-        year +
-        "-" +
-        isless10(month) +
-        "-" +
-        isless10(day) +
-        " " +
-        isless10(hour) +
-        ":" +
-        isless10(minute)
-      );
+      return moment(new Date(value)).format("MM-DD HH-mm");
     }
   },
   watch:{
     comments(){
-      console.log(this.comments);
       for (index in comments){
-        
         getcomments_level(comments[index].commentId);
       }
     }
   },
-  created(){
-  }
 };
 </script>
 <style scoped>

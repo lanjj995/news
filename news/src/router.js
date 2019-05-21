@@ -3,9 +3,20 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-export default new Router({
+Router.beforeEnter
+
+const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
+  // 滚动最顶端
+  scrollBehavior (to,form,savedPosition) {
+    // savedPosition （前进、后退是原来的位置）
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return {x:0,y:0};
+    }
+  },
   routes: [
     // 用户
     {
@@ -13,21 +24,21 @@ export default new Router({
       path: '/regist',
       name: 'regist',
       component: function () {
-        return import('./views/regist.vue');
+        return import('./views/user/regist.vue');
       }
     },
     {
       path: '/login',
       name: 'login',
       component: function () {
-        return import('./views/login.vue');
+        return import('./views/user/login.vue');
       }
     },
     {
       path: '/findpassword',
       name: 'findpassword',
       component: function () {
-        return import('./views/findpsw.vue');
+        return import('./views/user/findpsw.vue');
       }
     },
    
@@ -36,7 +47,7 @@ export default new Router({
       path: "/",
       name:'new',
       component: function () {
-        return import("./views/new.vue");
+        return import("./views/new/new.vue");
       },
       
     },
@@ -45,7 +56,7 @@ export default new Router({
       path: "/details/:id",
       name:'details',
       component: function () {
-        return import("./views/details.vue");
+        return import("./views/new/details.vue");
       },
       
     },
@@ -54,13 +65,13 @@ export default new Router({
       path: '/message',
       beforeEnter: function (to, from, next) {
         if (!localStorage.token) {
-          next("/user/login");
+          next("/login");
         } else {
           next();
         }
       },
       component: function () {
-        return import('./views/message.vue');
+        return import('./views/message/message.vue');
       },
       children: [
         {
@@ -84,28 +95,39 @@ export default new Router({
       name: 'accountmessage',
       beforeEnter: function (to, from, next) {
         if (!localStorage.token) {
-          next("/user/login");
+          next("/login");
         } else {
           next();
         }
       },
       component: function () {
-        return import('./views/accountmessage.vue');
+        return import('./views/account/accountmessage.vue');
       },
     },
     {
       path: '/accountupdate',
       name:'accountupdate',
       component:function(){
-        return import ('./views/accountupdate.vue');
+        return import ('./views/account/accountupdate.vue');
       }
     },
     {
       path: "/404",
       name: "404",
       component: function () {
-        return import("./views/404.vue");
+        return import("./views/commons/404.vue");
       }
     }
   ]
-})
+});
+
+router.beforeEach((to,form,next) => {
+  if (to.matched.length === 0) {
+    console.log(1111);
+    next('/404');
+  } else {
+    next();
+  }
+});
+
+export default router;

@@ -1,13 +1,12 @@
 <template>
-  <div class="mycomment"> 
-    <div class="biaojiyidu" v-show="this.$route.path.indexOf('/mymessage')!=-1">
-        <span @click="biaojiAll">
-
-        <img src="@/assets/icon_sign.png"  >
+  <div class="mycomment">
+    <div class="biaojiyidu">
+      <span @click="biaojiAll">
+        <img src="../../assets/icon_sign.png">
         全部标记为已读
-        </span>
-      </div>
-      <div class="none">{{none}}</div>
+      </span>
+    </div>
+    <div class="none">{{none}}</div>
     <div class="comment-item" v-for="(message,index) in messages" :key="index">
       <div class="comment-item-left">
         <div class="yidu" v-show="!message.isRead"></div>
@@ -18,178 +17,161 @@
           <span>{{message.create_time | getTime}}</span>
         </div>
         <div class="content">
-          <p class="comment-content" :style="{color:!message.isRead?'#333':'#6f6f6f'}">{{message.content}}</p>
+          <p
+            class="comment-content"
+            :style="{color:!message.isRead?'#333':'#6f6f6f'}"
+          >{{message.content}}</p>
         </div>
-        <p class="commentform" title="查看文章" @click="goDetails(message.isRead,message.commentId,message.articleId._id)">{{message.articleId.title}}</p>
+        <p
+          class="commentform"
+          title="查看文章"
+          @click="goDetails(message.isRead,message.commentId,message.articleId._id)"
+        >{{message.articleId.title}}</p>
       </div>
-      
-  </div>
-  <div class="loading" v-if="isloading && messages.length!=0">
-            <el-button :loading="true" style="width:100%;border:none;background: transparent;">加载中</el-button>
-      </div>
+    </div>
+    <div class="loading" v-if="isloading && messages.length!=0">
+      <el-button :loading="true" class="loading_btn">加载中</el-button>
+    </div>
   </div>
 </template>
 <script>
-import { messageList,messageCheck } from "../../api/account.js";
-import { tokenMethod } from "../../api/token.js";
+import { messageList, messageCheck } from "../../api/account.js";
+import { tokenMethod } from "../../utils/utils";
 export default {
   data() {
     return {
       page: 1,
-      page2:2,
       limit: 10,
       messages: [],
-      none:"",
-      count:0,
-      isloading:true
+      none: "",
+      count: 0,
+      isloading: true
     };
   },
   methods: {
-    getMyMessageList({token, page, limit}) {
+    getMyMessageList() {
       let self = this;
-      messageList({token, page, limit})
+      messageList({
+        token: self.$store.state.token,
+        page: self.page,
+        limit: self.limit
+      })
         .then(res => {
           if (res.data.code === "success") {
-            self.messages = self.messages.concat(res.data.data.commnets);
-             if ( self.messages.length === 0) {
+            self.messages = self.messages.concat(res.data.data.comments);
+            if (self.messages.length === 0) {
               self.none = "您还没有消息";
             } else {
-              self.messages.sort(function(a,b) {
-                if (a.isRead==b.isRead) return 0;
-                if (a.isRead<b.isRead) return -1;
-                if (a.isRead>b.isRead) return 1;
-              })
+              self.messages.sort(function(a, b) {
+                if (a.isRead == b.isRead) return 0;
+                if (a.isRead < b.isRead) return -1;
+                if (a.isRead > b.isRead) return 1;
+              });
             }
-            self.page +=1;
+            self.page += 1;
             self.count = res.data.data.counts;
           } else {
-             tokenMethod({code:res.data.code,message:res.data.message,self});
+            tokenMethod({
+              code: res.data.code,
+              message: res.data.message,
+              self
+            });
           }
         })
         .catch(err => {});
     },
     // 全部标记
-    biaojiAll(){
+    biaojiAll() {
       let self = this;
-      messageCheck({commnetId:null,token:self.$store.state.user.token}).then(res=> {
-        if (res.data.code === "success") {
-          self.$message({
-            type:'success',
-            message:'消息已读'
-          });
-          for (let index in self.messages) {
-            let s = self.messages[index];
-            s.isRead = true;
-            self.$set(self.messages,index,s);
+      messageCheck({ commnetId: null, token: self.$store.state.user.token })
+        .then(res => {
+          if (res.data.code === "success") {
+            self.$message({
+              type: "success",
+              message: "消息已读"
+            });
+            for (let index in self.messages) {
+              let s = self.messages[index];
+              s.isRead = true;
+              self.$set(self.messages, index, s);
+            }
+          } else {
+            tokenMethod({
+              code: res.data.code,
+              message: res.data.message,
+              self
+            });
           }
-        } else {
-             tokenMethod({code:res.data.code,message:res.data.message,self});
-        }
-      }).catch(err => {
-        // 错误处理
-      });
+        })
+        .catch(err => {
+          // 错误处理
+        });
     },
-    goDetails(isRead,commentId,id) {
+    goDetails(isRead, commentId, id) {
       let self = this;
       if (!isRead) {
- messageCheck({commentId,token:self.$store.state.user.token}).then(res => {
-         if (res.data.code === "success") {
-           self.$message({
-             code:'success',
-             message:'消息已读'
-           });
-       self.$router.push({name:'details',params:{id}});
-
-         } else {
-             tokenMethod({code:res.data.code,message:res.data.message,self});
-         }
-       }).catch(err => {
-         // 错误处理
-       });
+        messageCheck({ commentId, token: self.$store.state.user.token })
+          .then(res => {
+            if (res.data.code === "success") {
+              self.$message({
+                code: "success",
+                message: "消息已读"
+              });
+              self.$router.push({ name: "details", params: { id } });
+            } else {
+              tokenMethod({
+                code: res.data.code,
+                message: res.data.message,
+                self
+              });
+            }
+          })
+          .catch(err => {
+            // 错误处理
+          });
       } else {
-       self.$router.push({name:'details',params:{id}});
-
+        self.$router.push({ name: "details", params: { id } });
       }
-      
+    },
+    scrollMessage() {
+      let self = this;
+      let loading = document.querySelector(".loading");
+      if (!loading) return;
+      if (
+        loading.getBoundingClientRect().top + loading.offsetHeight <
+        document.documentElement.clientHeight
+      ) {
+        if (self.messages.length < self.count) {
+          self.getMyMessageList();
+        } else {
+          self.isloading = false;
+        }
+      }
     }
   },
   filters: {
     getTime(value) {
-      let create_time = new Date(value);
-      let now = new Date();
-      let cha = now.getTime - create_time;
-
-      function isless10(value) {
-        if (value >= 10) {
-          return value;
-        } else {
-          return "0" + value;
-        }
-      }
-      let year = create_time.getFullYear();
-      let month = create_time.getMonth() + 1;
-      let day = create_time.getDate();
-      let hour = create_time.getHours();
-      let minute = create_time.getMinutes();
-      return (
-        year +
-        "-" +
-        isless10(month) +
-        "-" +
-        isless10(day) +
-        " " +
-        isless10(hour) +
-        ":" +
-        isless10(minute)
-      );
+      return moment(new Date(value)).format("YYYY-MM-DD HH:MM");
     }
   },
   created() {
-    this.getMyMessageList({token:this.$store.state.user.token, page:this.page, limit:this.limit});
-    document.documentElement.scrollTop = 0;
+    let self = this;
+    self.getMyMessageList();
   },
-  mounted(){
-      let self = this;
-
-  window.onscroll = function(){
-    // 导航
-    
-      if (document.documentElement.scrollTop - 145> 0){
-       document.querySelector(".nav1").style.top = (document.documentElement.scrollTop - 145) + 'px';
-      } else {
-       document.querySelector(".nav1").style.top = 0;
-      }
-      
-      let loading = document.querySelector(".loading");
-      if (!loading) return;
-      console.log(self.page2,self.page,loading.getBoundingClientRect().top + loading.offsetHeight < document.documentElement.clientHeight);
-      if (loading.getBoundingClientRect().top + loading.offsetHeight < document.documentElement.clientHeight) {
-        if (self.messages.length < self.count) {
-          if (self.page === self.page2){
-            self.page2 += 1;
-
-            setTimeout(function(){
-
-              self.getMyMessageList({token:self.$store.state.user.token, page:self.page, limit:self.limit});
-            },1000);
-            
-          }
-        }else {
-          self.isloading = false;
-        }
-      }
+  mounted() {
+    window.addEventListener("scroll", _.throttle(this.scrollMessage, 2000));
+  },
+  beforeDestroy() {
+    window.removeEventListener("scroll", _.throttle(this.scrollMessage, 2000));
   }
-   
-  }
-
 };
 </script>
 <style scoped>
-.none{
+.none {
   text-align: center;
   font-size: 30px;
 }
-.mycomment{
+.mycomment {
   min-height: 480px;
   position: relative;
 }
@@ -199,22 +181,22 @@ export default {
   margin-bottom: 20px;
 }
 
-.comment-item-left{
-  width:30px;
+.comment-item-left {
+  width: 30px;
   height: 100%;
   display: inline-block;
   vertical-align: middle;
   position: absolute;
   top: -8px;
 }
-.comment-item-left::after{
+.comment-item-left::after {
   content: "";
   width: 0;
   height: 100%;
   display: inline-block;
   vertical-align: middle;
 }
-.comment-item-right{
+.comment-item-right {
   margin-left: 30px;
 }
 .comment-item-head > span:last-child {
@@ -228,30 +210,37 @@ export default {
 }
 
 .commentform {
-
   cursor: pointer;
 }
 .comment-content {
   color: #333;
 }
-.yidu{
+.yidu {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background:#FF8000;
+  background: #ff8000;
   vertical-align: middle;
 }
-.biaojiyidu{
+.biaojiyidu {
   width: 100%;
-  margin:auto;
+  margin: auto;
   overflow: auto;
-  margin-bottom :10px;
+  margin-bottom: 10px;
   position: absolute;
   top: -50px;
 }
-.biaojiyidu > span{
+.biaojiyidu > span {
   cursor: pointer;
   float: right;
+}
+.biaojiyidu > span > img {
+  vertical-align: middle;
+}
+.loading_btn {
+  width: 100%;
+  border: none;
+  background: transparent;
 }
 </style>

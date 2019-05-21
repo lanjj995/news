@@ -1,21 +1,21 @@
 <template>
   <div class="main">
-    <headerCom style="background:#0074ff;color:#fff;" :color="'#ffffff'"></headerCom>
+    <headerCom class="header" :color="'#fff'"></headerCom>
     <div class="content">
       <div class="details">
         <div class="comment-msg">
           <ul>
             <li>
-              <img src="@/assets/icon_comment_color.png" alt>
+              <img src="../../assets/icon_comment_color.png" alt>
               {{news.comment_sum}}
             </li>
             <li>
-              <img src="@/assets/icon_saw_color.png" alt>
+              <img src="../../assets/icon_saw_color.png" alt>
               {{news.comment_sum}}
             </li>
             <li class="fenxiangLi">
-              <img src="@/assets/icon_share.png" @click="isImg = !isImg">
-              <img src="@/assets/fenxiang.png" class="fenxiang" v-show="isImg">
+              <img src="../../assets/icon_share.png" @click="isImg = !isImg">
+              <img src="../../assets/fenxiang.png" class="fenxiang" v-show="isImg">
             </li>
           </ul>
         </div>
@@ -26,7 +26,7 @@
             <span>{{news.create_time | getTime}}</span>
           </div>
           <div class="detials-img">
-            <img src="@/assets/new.png" alt="图片" class="details-image">
+            <img src="../../assets/new.png" alt="图片" class="details-image">
           </div>
           <div class="content" v-html="news.details">
             <!-- <p>介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴介夫子消息，12月25日滴滴</p> -->
@@ -40,7 +40,7 @@
               v-model="commentcontent"
             ></textarea>
             <inputButton
-              style="width:110px;height:36px;background:#FF8000;color:#FFFFFF;float:right;margin-top:10px;"
+              class="comment_btn"
               :value="this.$store.state.token?'评论':'登陆评论'"
               @click.native="comment"
             ></inputButton>
@@ -66,21 +66,25 @@
   </div>
 </template>
 <script>
-import headerCom from "../components/common/header";
-import footerCom from "../components/common/footer";
-import inputButton from "../components/input/input-button";
-import comment from "../components/new/comment";
-import { details, comment_list, addcomment } from "../api/new.js";
-import { tokenMethod } from "../api/token.js";
-import { create } from "domain";
+import headerCom from "../../components/common/header";
+import footerCom from "../../components/common/footer";
+import inputButton from "../../components/input/input-button";
+import comment from "../../components/new/comment";
+import { getDetails, getCommentList, addComment } from "../../api/new.js";
+import { filterTime,tokenMethod } from "../../utils/utils";
 export default {
+  components: {
+    headerCom,
+    footerCom,
+    inputButton,
+    comment
+  },
   data() {
     return {
       news: {},
       imgUrl: "",
       id: "",
       page: 1,
-      page2: 1,
       limit: 10,
       commentList: {},
       commentIdsList: [],
@@ -92,65 +96,40 @@ export default {
   },
   filters: {
     getTime(value) {
-      let create_time = new Date(value);
-      let now = new Date();
-      let cha = now.getTime - create_time;
-      if (cha < 43200000) {
-        if (cha < 3600000) {
-          return cha / 60000 + "分钟前";
-        } else {
-          return cha / 3600000 + "小时前";
-        }
-      } else {
-        function isless10(value) {
-          if (value > 10) {
-            return value;
-          } else {
-            return "0" + value;
-          }
-        }
-        let month = create_time.getMonth() + 1;
-        let day = create_time.getDate();
-        return isless10(month) + "月" + isless10(day) + "日";
-      }
+      return filterTime(value);
     }
   },
   methods: {
     // 获取评论列表
-
-    getcomment_list(id) {
+    getcomment_list() {
       let self = this;
-      if (self.page === self.page2) {
-        self.page2 += 1;
-        comment_list({id, page:self.page, limit:self.limit})
-          .then(res => {
-            if (res.data.code === "success") {
-              self.commentList = Object.assign(
-                {},
-                self.commentList,
-                res.data.data.comments
-              );
-          
-              self.commentIdsList = self.commentIdsList.concat(
-                res.data.data.commentIds
-              );
-              self.count = res.data.data.counts;
-              self.page += 1;
-            } else {
-              self.$message.error(res.data.message);
-            }
-          })
-          .catch(err => {
-            // 错误处理
-            console.log(err);
-          });
-      } else {
-      }
+      getCommentList({ id: self.id, page: self.page, limit: self.limit })
+        .then(res => {
+          if (res.data.code === "success") {
+            self.commentList = Object.assign(
+              {},
+              self.commentList,
+              res.data.data.comments
+            );
+
+            self.commentIdsList = self.commentIdsList.concat(
+              res.data.data.commentIds
+            );
+            self.count = res.data.data.counts;
+            self.page += 1;
+          } else {
+            self.$message.error(res.data.message);
+          }
+        })
+        .catch(err => {
+          // 错误处理
+          console.log(err);
+        });
     },
     // 获取文章详情
-    getdetails(id) {
+    getdetails() {
       let self = this;
-      details({id})
+      getDetails({ id: self.id })
         .then(res => {
           if (res.data.code === "success") {
             self.news = res.data.data.news;
@@ -176,11 +155,11 @@ export default {
             message: "请输入评论内容"
           });
         } else {
-          addcomment({
-            articleId:self.id,
-            commentId:null,
-            content:self.commentcontent,
-            token:self.$store.state.user.token
+          addComment({
+            articleId: self.id,
+            commentId: null,
+            content: self.commentcontent,
+            token: self.$store.state.user.token
           })
             .then(res => {
               if (res.data.code === "success") {
@@ -191,7 +170,11 @@ export default {
                 });
                 self.commentcontent = "";
               } else {
-                tokenMethod({code:res.data.code,message:res.data.message,self});
+                tokenMethod({
+                  code: res.data.code,
+                  message: res.data.message,
+                  self
+                });
               }
             })
             .catch(err => {
@@ -208,26 +191,9 @@ export default {
       self.commentIdsList = [];
       self.commentList = {};
       self.getcomment_list(self.id);
-    }
-  },
-  components: {
-      headerCom,
-      footerCom,
-    inputButton,
-    comment
-  },
-  created() {
-    let self = this;
-    self.id = self.$route.params.id;
-    self.getdetails(self.id);
-    self.getcomment_list(self.id);
-    document.documentElement.scrollTop = 0;
-   
-  },
-  mounted() {
-    window.onscroll = () => {
+    },
+    commentScroll() {
       let self = this;
-
       let loading = document.querySelector(".loading");
       let arr = document.querySelectorAll(".body");
       if (!loading) return;
@@ -237,106 +203,123 @@ export default {
           loading.clientHeight <
         document.documentElement.clientHeight
       ) {
-        arr.length < this.count ? self.getcomment_list(self.id):self.isloading = false;
+        arr.length < self.count
+          ? self.getcomment_list(self.id)
+          : (self.isloading = false);
       }
-    };
+    }
+  },
+
+  created() {
+    let self = this;
+    self.id = self.$route.params.id;
+    self.getdetails();
+    self.getcomment_list();
+  },
+  mounted() {
+    window.addEventListener("scroll", _.throttle(this.commentScroll, 2000));
+  },
+  beforeDestroy() {
+    window.removeEventListener("scroll", _.throttle(this.commentScroll, 2000));
   }
 };
 </script>
 <style scoped>
-.fenxiangLi >img{
-  cursor: pointer;
+.main .content > p {
+  font-size: 16px;
+  color: #333333;
 }
-
-.loading {
-  text-align: center;
-}
-.el-button {
-  border: none;
-}
-.details {
+.main .content .details {
   width: 100%;
   position: relative;
 }
-.comment-msg {
+.main .content .details .comment-msg {
   position: absolute;
   top: 66px;
   left: 80px;
   font-size: 14px;
   color: #9b9b9b;
 }
-.comment-msg > ul > li {
+.main .content .details .comment-msg > ul > li {
   height: 30px;
   width: 134px;
   padding: 10px 0 10px 0;
 }
-.comment-msg > ul > li:nth-child(2) {
+.main .content .details .comment-msg > ul > li:nth-child(2) {
   border-bottom: 1px solid #dcdcdc;
 }
-.comment-msg > ul > li > img {
+.main .content .details .comment-msg > ul > li > img {
   margin-right: 10px;
   vertical-align: middle;
 }
-.news-details {
+.main .content .details .comment-msg > ul .fenxiangLi {
+  position: relative;
+}
+.main .content .details .comment-msg > ul .fenxiangLi > .fenxiang {
+  position: absolute;
+  top: 12px;
+  right: -25px;
+  border: 1px solid #ddd;
+}
+.main .content .details .comment-msg > ul .fenxiangLi > img {
+  cursor: pointer;
+}
+.main .content .details .news-details {
   width: 858px;
   margin: auto;
 }
-.title {
+.main .content .details .news-details .title {
   font-size: 26px;
   color: #333333;
   padding: 20px 0 20px 0;
 }
-.message {
+.main .content .details .news-details .message {
   padding-bottom: 20px;
   font-size: 14px;
 }
-.message > span:first-child {
+.main .content .details .news-details .message > span:first-child {
   color: #333333;
   margin-right: 20px;
 }
-.message > span:last-child {
+.main .content .details .news-details .content {
+  padding: 10px 20px 30px;
+}
+.main .content .details .news-details .message > span:last-child {
   color: #9b9b9b;
 }
-.detials-img {
+.main .content .details .news-details .detials-img {
   width: 655px;
   height: 337px;
   margin: auto;
 }
-.details-image {
+.main .content .details .news-details .detials-img .details-image {
   width: 100%;
   height: 100%;
 }
-.content {
-  padding: 10px 0 30px 0;
-}
-.content > p {
-  font-size: 16px;
-  color: #333333;
-}
-.publish-comment {
+.main .content .details .news-details .publish-comment {
   border-top: 1px solid #dcdcdc;
   padding: 20px 0 20px 0;
 }
-.publish-comment::after {
+.main .content .details .news-details .publish-comment::after {
   content: "";
   display: block;
   clear: both;
 }
-.publish-comment > h2,
-.new-comment > h2 {
+.main .content .details .news-details .publish-comment > h2,
+.main .content .details .news-details .new-comment > h2 {
   font-size: 16px;
   color: #6f6f6f;
   font-weight: 0;
   font-family: MicrosoftYaHei;
 }
-.new-comment > h2 {
+.main .content .details .news-details .new-comment > h2 {
   margin: 0;
 }
-.new-comment > h2 {
+.main .content .details .news-details .new-comment > h2 {
   border-bottom: 1px solid #dcdcdc;
   padding-bottom: 20px;
 }
-.comment-texerea {
+.main .content .details .news-details .publish-comment .comment-texerea {
   width: 100%;
   border: 1px solid #979797;
   border-radius: 4px;
@@ -345,13 +328,15 @@ export default {
   padding: 10px 20px;
   box-sizing: border-box;
 }
-.commentTocomment {
-  width: 85%;
-  background: #f3f3f3;
-  padding: 20px;
-  box-sizing: border-box;
+.main .content .details .news-details .publish-comment .comment_btn {
+  width: 110px;
+  height: 36px;
+  background: #ff8000;
+  color: #ffffff;
+  float: right;
+  margin-top: 10px;
 }
-.body {
+.main .content .details .news-details .new-comment .body {
   padding: 30px 10px 30px 10px;
   border-bottom: 1px solid #dcdcdc;
   overflow: auto;
@@ -359,25 +344,25 @@ export default {
 ::-webkit-input-placeholder {
   color: #9b9b9b;
   font-size: 16px;
-  font-family: MicrosoftYaHei;
+  font-family: "MicrosoftYaHei";
 }
 ::-moz-placeholder {
   color: #9b9b9b;
   font-size: 16px;
-  font-family: MicrosoftYaHei;
+  font-family: "MicrosoftYaHei";
 }
-:-ms-input-placeholder {
+::-ms-input-placeholder {
   color: #9b9b9b;
   font-size: 16px;
-  font-family: MicrosoftYaHei;
+  font-family: "MicrosoftYaHei";
 }
-.fenxiangLi {
-  position: relative;
+.loading {
+  text-align: center;
 }
-.fenxiang {
-  position: absolute;
-  top: 12px;
-  right: -25px;
-  border: 1px solid #ddd;
+.el-button {
+  border: none;
+}
+.header {
+  background: #0074ff;
 }
 </style>

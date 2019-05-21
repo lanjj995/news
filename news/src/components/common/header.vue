@@ -1,149 +1,125 @@
 <template>
   <header>
-    <div :class="[color?'logoWhite':'logo']" @click="goNew"></div>
-    <span @click="goNew" title="新闻">新闻项目</span>
-    <div class="user-header" title="新闻" v-if="this.$store.state.token">
-      <img
-        :src="this.$store.state.avatar?this.$store.state.avatar:this.$store.state.user.avatar?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+this.$store.state.user.avatar:defaultAvator"
-        alt="头像"
-        id="header"
-        class="goMessage"
-        @click="goMessage"
-        title="我的消息"
-      >
-       
-      <span id="username"  title="我的消息" @click="goMessage" class="goMessage">{{this.$store.state.user.nickname}}</span>
+    <router-link :to="{name:'new'}">
+      <div :class="logoClass"></div>
+      <a class="name" :style="{color:color}">新闻项目</a>
+    </router-link>
+    <div class="user_onlogin" title="新闻" v-if="this.$store.state.token">
+       <router-link :to="{name:'mymessage'}">
+        <img v-lazy="myheader" alt="头像" class="header" title="我的消息"/>
+        <span class="username"  title="我的消息" >{{this.$store.state.user.nickname}}</span>
+       </router-link>
 
-      <div class="arrow" @mouseover="falg = true" @mouseout="falg = false">
-        <img :src="imgUrl" class="arrow_down">
-        <nav v-show="falg">
-          <li @click="goAccount">
-            <img src="@/assets/icon_my.png">
-            我的账户
-          </li>
+      <div class="arrow">
+        <img src="../../assets/icon_arrow_down.png" class="arrow_down">
+        <nav>
+          <router-link :to="{name:'accountmessage'}">
+            <li>
+              <img src="../../assets/icon_my.png">
+              我的账户
+            </li>
+          </router-link>
           <li @click="loginOut">
-            <img src="@/assets/icon_out.png">
+            <img src="../../assets/icon_out.png">
             退出登录
           </li>
         </nav>
       </div>
     </div>
-    <div class="login-regist" v-else>
-      <router-link to="/login" :style="{color:color?color:'#0074ff;'}">登录</router-link>
-      <router-link to="/regist" :style="{color:color?color:'#0074ff;'}">注册</router-link>
+    <div class="user_nologin" v-else>
+      <router-link to="/login" :style="{color:color}">登录</router-link>
+      <router-link to="/regist" :style="{color:color}">注册</router-link>
     </div>
   </header>
 </template>
 <script>
-import defaultAvator from "@/assets/header.png";
+import defaultAvator from "../../assets/header.png";
 export default {
   props: {
     color: String
   },
   data() {
     return {
-      falg: false,
       user: {},
       avatar: "",
       defaultAvator
     };
   },
   methods: {
-    goNew() {
-      this.$router.push({ name: "new" });
-    },
-    goMessage() {
-      this.$router.push({ path: "/message" });
-    },
-    goAccount() {
-      this.$router.push({ path: "/accountmessage" });
-    },
     loginOut() {
       let self = this;
       self.$store.commit('setUser','');
       self.$store.commit('setToken','');
       self.$store.commit('setAvatar','');
-      this.$router.push({ name: "login" });
+      self.$router.push({ name: "login" });
     }
   },
   computed: {
-    imgUrl() {
-      return this.falg
-        ? require("@/assets/icon_arrow_up.png")
-        : require("@/assets/icon_arrow_down.png");
+    logoClass(){
+      return this.color === "#fff" ? 'logo_white' : 'logo_color';
+    },
+    myheader(){
+      let self = this;
+      return self.$store.state.avatar?self.$store.state.avatar:self.$store.state.user.avatar?'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'+self.$store.state.user.avatar:defaultAvator;
     }
   },
   created() {
-    this.user = this.$store.state.user;
-    this.avatar = this.$store.state.avatar;
+    let self = this;
+    self.user = self.$store.state.user;
+    self.avatar = self.$store.state.avatar;
   }
 };
 </script>
 
-<style>
-.goMessage {
-  cursor: pointer;
-}
+<style scoped>
+
 header {
   width: 100%;
   height: 80px;
-  font-size: 26px;
-  color: #0074ff;
   line-height: 80px;
 }
-a {
-  color: #0074ff;
-  font-size: 20px;
-}
 
-header > .logo {
+header .logo_white, header .logo_color{
   display: inline-block;
   width: 120px;
   height: 80px;
-  background: url("../../assets/logo_color.png") 100% 50% no-repeat;
+  margin-left: 130px;
   vertical-align: middle;
-  margin: 0 30px 0 130px;
-  cursor: pointer;
-
 }
 
-.logoWhite {
-  display: inline-block;
-  width: 130px;
-  height: 80px;
-  background: url("../../assets/logo_white.png") 100% 50% no-repeat;
-  vertical-align: middle;
-  margin: 0 30px 0 130px;
-  cursor: pointer;
+header .logo_white {
+  background: url("../../assets/logo_white.png") no-repeat 0 40%;
 }
 
-header > span {
-  display: inline-block;
-  height: 80px;
-  line-height: 80px;
-  cursor: pointer;
+header .logo_color {
+  background: url("../../assets/logo_color.png") no-repeat 0 40%;
 }
 
-header > .login-regist {
-  display: inline-block;
+header .name {
+  font-size: 24px;
+  color:#fff;
+  margin-left: 20px;
+}
+
+header .user_nologin {
+  display: block;
   height: 80px;
-  vertical-align: middle;
   float: right;
 }
 
-header > .login-regist > a:last-child {
+header .user_nologin > a:last-child {
   margin: 0 130px 0 30px;
 }
-.user-header {
+.user_onlogin {
   height: 100%;
-  display: inline-block;
+  display: block;
   float: right;
   color: #fff;
   font-size: 18px;
   margin-right: 130px;
-  vertical-align: middle;
 }
-header > .user-header > #header {
+
+header .user_onlogin .header {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -151,38 +127,60 @@ header > .user-header > #header {
   margin-right: 20px;
 }
 
-header > .user-header > .arrow_down {
+header .user_onlogin .username {
+  color: #fff;
+}
+
+header .user_onlogin .arrow_down {
   margin-left: 20px;
   vertical-align: middle;
   cursor: pointer;
+  transition: transform 1s;
 }
-.arrow {
+
+header .user_onlogin .arrow {
   display: inline-block;
   padding-left:30px;
   position: relative;
+  cursor: pointer;
 }
 
-nav {
+header .user_onlogin .arrow:hover nav{
+  height: 120px;
+  box-shadow: -2px -2px 3px 1px rgba(39, 52, 101, 0.08),
+    2px 2px 3px 1px rgba(39, 52, 101, 0.08);
+}
+
+header .user_onlogin .arrow:hover .arrow_down {
+  transform: rotate(180deg);
+}
+
+header .user_onlogin nav {
   width: 140px;
+  height: 0;
   list-style: none;
   font-size: 14px;
   color: #333;
-  box-shadow: -2px -2px 3px 1px rgba(39, 52, 101, 0.08),
-    2px 2px 3px 1px rgba(39, 52, 101, 0.08);
   position: absolute;
   right:0;
   z-index: 999;
   background: #fff;
+  transition: 0.8s;
+  overflow: hidden;
 }
-nav > li {
+header .user_onlogin nav li {
   height: 60px;
   line-height: 60px;
   padding: 0 15px;
+  color: #333;
   cursor: pointer;
 }
-nav > li > img {
+header .user_onlogin nav li:hover {
+  background: #0074FF;
+  color: #fff;
+}
+header .user_onlogin nav li img {
   vertical-align: middle;
   margin-right: 9px;
 }
-
 </style>

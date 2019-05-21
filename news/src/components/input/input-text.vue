@@ -6,6 +6,7 @@
       :style="{width:width+'px',height:height+'px',border:border}"
       :value="value"
       @input="$emit('input',$event.target.value)"
+      @blur="$emit('pblur')"
       required
     >
     <!-- <div class="check">
@@ -49,19 +50,4 @@ export default {
 .input:-ms-input-placeholder{ 
   color: #9b9b9b;       
 }
-/* .check{
-  border:1px solid #999;
-  border-radius: 10px;
-  box-shadow: #999;
-  background: #fff;
-  padding: 10px; 
-  color: #666;
-  position: absolute;
-  z-index: 10;
-}
-.tra{
-  width: 0;
-  height: 0;
-  
-} */
 </style>

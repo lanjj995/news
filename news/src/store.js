@@ -9,7 +9,8 @@ export default new Vuex.Store({
     avatar:"",
     token:"",
     isActive:"yaowen",
-    isMessageActive:'mycomment'
+    isMessageActive:'mycomment',
+    baseImgUrl:'https://dev.apis.ittim.ltd/nWGq7NqEf/static/'
   },
   mutations: {
     initUser(state){

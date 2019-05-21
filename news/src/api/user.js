@@ -25,7 +25,6 @@ function getSmsCaptchaReceive({phone, type}) {
 // 注册
 function regist({phone, password, smsCaptcha}) {
     return Axios.post('/account/register', {
-
         phone,
         password,
         smsCaptcha
@@ -41,13 +40,17 @@ function login({phone, password}) {
 // 找回密码
 function findPassword({phone, smsCaptcha, password}) {
     return Axios.post('/account/reset', {
-        phone, smsCaptcha, password
+        phone, 
+        smsCaptcha, 
+        password
     })
 }
 // 修改密码
 function updatepsw({phone,smsCaptcha,password}){
     return Axios.post('/account/reset',{
-        phone, smsCaptcha, password
+        phone,
+        smsCaptcha, 
+        password
     })
 }
 export {

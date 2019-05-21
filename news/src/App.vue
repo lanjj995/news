@@ -4,26 +4,16 @@
   </div>
 </template>
 
-<script>
-
-</script>
-
-
 <style>
 body{
   margin:0;
-  min-width:1350px;
+  min-width:1340px;
   max-height: 104px;
 }
 #app {
-  font-family: MicrosoftYaHei;
   width: 100%;
-  height: 1024px;
-  margin: 0;
-  padding: 0;
-  margin: auto;
+  margin: 0 auto;
 }
-
 a {
   text-decoration: none;
 }
